@@ -20,17 +20,20 @@ services:
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_HOSTNAME: localhost
-      KC_HOSTNAME_PORT: 8180
+      KC_HOSTNAME: http://localhost:8180
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
-      KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
-      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/GestionOrdinateursDb
+      KC_DB_USERNAME: user
+      KC_DB_PASSWORD: 1234
     command: start-dev
     ports:
       - "8180:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
+    depends_on:
+      - postgres
     networks:
       - appnet
 
