@@ -1,6 +1,8 @@
 # TP6 - Gestion d'une flotte d'ordinateurs
 Safi Achraf - EFREI
 
+[Projet GitHub](https://github.com/safiAchraf/TP6-dotNet-et-C-)
+
 ## Lancement du projet
 
 Au premier lancement, copier `.env.example` en `.env`. Si le fichier existe déjà, le conserver.
