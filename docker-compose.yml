@@ -28,11 +28,13 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres:5432/GestionOrdinateursDb
       KC_DB_USERNAME: user
       KC_DB_PASSWORD: 1234
-    command: start-dev
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-}
+    command: start-dev --import-realm
     ports:
       - "8180:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
+      - ./keycloak/import:/opt/keycloak/data/import:ro
     depends_on:
       - postgres
     networks:

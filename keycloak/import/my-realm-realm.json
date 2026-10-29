@@ -1,0 +1,139 @@
+{
+  "realm": "my-realm",
+  "enabled": true,
+  "registrationAllowed": false,
+  "roles": {
+    "client": {
+      "my-client": [
+        {
+          "name": "Admin"
+        },
+        {
+          "name": "Gestionnaire"
+        }
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "my-client",
+      "name": "GestionOrdinateurs",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${KEYCLOAK_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "http://localhost:5250",
+      "redirectUris": [
+        "http://localhost:5250/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5000",
+        "http://localhost:5165"
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "basic",
+        "email"
+      ],
+      "protocolMappers": [
+        {
+          "name": "mapper-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "usermodel.clientRoleMapping.clientId": "my-client"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "user1",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "user1",
+      "lastName": "TP6",
+      "email": "user1@example.com",
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "123",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "my-client": [
+          "Admin"
+        ]
+      },
+      "realmRoles": [
+        "default-roles-my-realm"
+      ]
+    },
+    {
+      "username": "user2",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "user2",
+      "lastName": "TP6",
+      "email": "user2@example.com",
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "123",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "my-client": [
+          "Gestionnaire"
+        ]
+      },
+      "realmRoles": [
+        "default-roles-my-realm"
+      ]
+    },
+    {
+      "username": "user3",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "user3",
+      "lastName": "TP6",
+      "email": "user3@example.com",
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "123",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "my-client": [
+          "Gestionnaire"
+        ]
+      },
+      "realmRoles": [
+        "default-roles-my-realm"
+      ]
+    }
+  ]
+}
