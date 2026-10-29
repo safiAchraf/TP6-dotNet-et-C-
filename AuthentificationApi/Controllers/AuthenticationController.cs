@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Json;
 using AuthentificationApi.Models;
+using AuthentificationApi.Services;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
@@ -16,13 +17,45 @@ public class AuthenticationController : ControllerBase
 {
     private readonly IConfiguration _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly KeycloakAuthService _keycloakAuthService;
 
-    public AuthenticationController(IConfiguration configuration, IHttpClientFactory httpClientFactory)
+    public AuthenticationController(IConfiguration configuration, IHttpClientFactory httpClientFactory, KeycloakAuthService keycloakAuthService)
     {
         _configuration = configuration;
         _httpClientFactory = httpClientFactory;
+        _keycloakAuthService = keycloakAuthService;
     }
 
+    // Connexion Keycloak avec identifiant et mot de passe.
+    [HttpPost("login-keycloak")]
+    public async Task<IActionResult> LoginKeycloak([FromBody] KeycloakLoginRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrEmpty(request.Password))
+        {
+            return BadRequest("L'identifiant et le mot de passe sont requis.");
+        }
+
+        try
+        {
+            var token = await _keycloakAuthService.LoginAsync(request.Username.Trim(), request.Password);
+            if (token == null)
+            {
+                return Unauthorized("Identifiant ou mot de passe incorrect.");
+            }
+
+            return Ok(token);
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(503, "Le service Keycloak est indisponible.");
+        }
+        catch (TaskCanceledException)
+        {
+            return StatusCode(503, "Le service Keycloak ne répond pas.");
+        }
+    }
+
+    // Ancien endpoint conservé comme demandé dans le TP.
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {

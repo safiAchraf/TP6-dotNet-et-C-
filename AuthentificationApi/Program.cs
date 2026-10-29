@@ -1,3 +1,5 @@
+using AuthentificationApi.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
@@ -11,6 +13,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient<KeycloakAuthService>();
 builder.Services.AddHttpClient("GestionOrdinateursAPI", client =>
 {
     client.BaseAddress = new Uri("http://gestionordinateurs-api:5247/");

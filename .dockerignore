@@ -3,6 +3,7 @@
 **/.vs
 .git
 .github
+.env
 **/Logs
 **/*.db-shm
 **/*.db-wal
