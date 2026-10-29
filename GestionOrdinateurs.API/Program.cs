@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -57,23 +56,27 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("La clé Jwt:Key est manquante.");
-var key = Encoding.ASCII.GetBytes(jwtKey);
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false;
+    options.Authority = builder.Configuration["Keycloak:Issuer"];
+    options.MetadataAddress = $"{builder.Configuration["Keycloak:BaseUrl"]}/realms/{builder.Configuration["Keycloak:Realm"]}/.well-known/openid-configuration";
+    options.RequireHttpsMetadata = false; // Only in develop environment
     options.SaveToken = true;
+    options.MapInboundClaims = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Keycloak:Issuer"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Keycloak:Audience"],
+        ValidateLifetime = true,
+        NameClaimType = "preferred_username",
+        RoleClaimType = "roles",
         ClockSkew = TimeSpan.Zero
     };
     options.Events = new JwtBearerEvents
