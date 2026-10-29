@@ -18,8 +18,13 @@
 
     <form @onsubmit="ConnecterAsync" @onsubmit:preventDefault="true" style="max-width: 400px;">
         <div class="mb-3">
-            <label class="form-label">Identifiant :</label>
-            <input type="text" class="form-control" placeholder="user1, user2, user3" @bind="Username" />
+            <label class="form-label" for="username">Identifiant :</label>
+            <input id="username" type="text" class="form-control" autocomplete="username" placeholder="user1, user2, user3" @bind="Username" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="password">Mot de passe :</label>
+            <input id="password" type="password" class="form-control" autocomplete="current-password" @bind="Password" />
         </div>
 
         <button type="submit" class="btn btn-primary" disabled="@IsLoading">
@@ -30,6 +35,7 @@
 
 @code {
     private string Username = string.Empty;
+    private string Password = string.Empty;
     private string ErrorMessage = string.Empty;
     private bool IsLoading = false;
     private bool ConnexionVerifiee;
@@ -57,15 +63,21 @@
             return;
         }
 
+        if (string.IsNullOrEmpty(Password))
+        {
+            ErrorMessage = "Veuillez saisir un mot de passe.";
+            return;
+        }
+
         IsLoading = true;
 
         try
         {
-            var res = await Http.PostAsJsonAsync("api/authentication/login", new { Login = Username.Trim() });
+            using var res = await Http.PostAsJsonAsync("api/authentication/login-keycloak", new { Username = Username.Trim(), Password });
 
-            if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
+            if (res.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                ErrorMessage = $"L'utilisateur '{Username.Trim()}' n'existe pas.";
+                ErrorMessage = "Identifiant ou mot de passe incorrect.";
                 return;
             }
 
@@ -76,7 +88,7 @@
             }
 
             var data = await res.Content.ReadFromJsonAsync<JsonElement>();
-            var token = data.GetProperty("token").GetString();
+            var token = data.GetProperty("access_token").GetString();
 
             if (!string.IsNullOrWhiteSpace(token))
             {

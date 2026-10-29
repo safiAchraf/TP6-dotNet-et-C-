@@ -21,11 +21,15 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
         if (!string.IsNullOrWhiteSpace(token))
         {
             var handler = new JwtSecurityTokenHandler();
-            // La signature est vérifiée par l'API ; ici on vérifie l'expiration pour l'affichage.
-            if (handler.CanReadToken(token) && handler.ReadJwtToken(token).ValidTo > DateTime.UtcNow)
+            // La signature est vérifiée par l'API ; ici on vérifie l'émetteur et l'expiration.
+            if (handler.CanReadToken(token))
             {
-                var identity = new ClaimsIdentity(ParseClaims(token), "jwt");
-                return new AuthenticationState(new ClaimsPrincipal(identity));
+                var jwt = handler.ReadJwtToken(token);
+                if (jwt.Issuer == "http://localhost:8180/realms/my-realm" && jwt.ValidTo > DateTime.UtcNow)
+                {
+                    var identity = new ClaimsIdentity(ParseClaims(token), "jwt");
+                    return new AuthenticationState(new ClaimsPrincipal(identity));
+                }
             }
 
             await _sessionStorage.RemoveItemAsync("jwtToken");
@@ -52,11 +56,11 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
         var claims = new List<Claim>();
         foreach (var claim in token.Claims)
         {
-            if (claim.Type == "role")
+            if (claim.Type == "roles")
             {
                 claims.Add(new Claim(ClaimTypes.Role, claim.Value));
             }
-            else if (claim.Type == "unique_name")
+            else if (claim.Type == "preferred_username")
             {
                 claims.Add(new Claim(ClaimTypes.Name, claim.Value));
             }
