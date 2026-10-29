@@ -13,7 +13,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddHttpClient("GestionOrdinateursAPI", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5247/");
+    client.BaseAddress = new Uri("http://gestionordinateurs-api:5247/");
 });
 
 builder.Services.AddEndpointsApiExplorer();
