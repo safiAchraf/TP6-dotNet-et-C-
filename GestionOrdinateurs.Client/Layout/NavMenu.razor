@@ -1,0 +1,72 @@
+@inject ISessionStorageService SessionStorage
+@inject JwtAuthenticationStateProvider AuthProvider
+@inject NavigationManager Navigation
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Gestion des ordinateurs</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                Accueil
+            </NavLink>
+        </div>
+
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="ordinateurs">
+                        Ordinateurs
+                    </NavLink>
+                </div>
+                <AuthorizeView Roles="Admin" Context="adminCtx">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="reparations">
+                            Réparations
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
+                <div class="px-3 py-2 text-white-50 small">
+                    @context.User.Identity?.Name (@context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)
+                </div>
+                <div class="nav-item px-3">
+                    <button class="btn btn-sm btn-outline-light" @onclick="DeconnecterAsync">
+                        Déconnexion
+                    </button>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="login">
+                        Connexion
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    private async Task DeconnecterAsync()
+    {
+        await SessionStorage.RemoveItemAsync("jwtToken");
+        AuthProvider.NotifyUserLogout();
+        Navigation.NavigateTo("/");
+    }
+}

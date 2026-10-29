@@ -1,0 +1,65 @@
+@page "/reparations"
+@attribute [Authorize(Roles = "Admin")]
+@inject HttpClient Http
+
+<PageTitle>Réparations</PageTitle>
+
+<h3>Historique des réparations</h3>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+@if (!IsLoading && (Historique == null || Historique.Count == 0))
+{
+    <p>Aucune réparation dans l'historique.</p>
+}
+else if (Historique != null && Historique.Count > 0)
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID Ordi</th>
+                <th>Nom de l'ordinateur</th>
+                <th>Technicien</th>
+                <th>Type de réparation</th>
+                <th>Date d'intervention</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rep in Historique)
+            {
+                <tr>
+                    <td>@rep.OrdinateurId</td>
+                    <td>@rep.NomOrdinateur</td>
+                    <td>@rep.Technicien</td>
+                    <td>@rep.TypeReparation</td>
+                    <td>@rep.DateIntervention.ToString("dd/MM/yyyy HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<HistoriqueReparationRecord>? Historique;
+    private bool IsLoading = true;
+    private string ErrorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Historique = await Http.GetFromJsonAsync<List<HistoriqueReparationRecord>>("api/reparations/historique");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Erreur : {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}

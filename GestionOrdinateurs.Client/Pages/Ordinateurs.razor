@@ -1,0 +1,131 @@
+@page "/ordinateurs"
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@attribute [Authorize]
+@inject HttpClient Http
+@inject DeviseService DeviseSvc
+
+<PageTitle>Ordinateurs</PageTitle>
+
+<h3>Liste des ordinateurs</h3>
+
+@if (DeviseSvc.TauxDollar.HasValue)
+{
+    <p>Taux de change indicatif : 1 EUR = @DeviseSvc.TauxDollar.Value.ToString("N4") USD.</p>
+}
+
+@if (!string.IsNullOrEmpty(DeviseSvc.MessageErreur))
+{
+    <div class="alert alert-warning">@DeviseSvc.MessageErreur</div>
+}
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+@if (!IsLoading && (ListeOrdinateurs == null || ListeOrdinateurs.Count == 0))
+{
+    <p>Aucun ordinateur trouvé.</p>
+}
+else if (ListeOrdinateurs != null && ListeOrdinateurs.Count > 0)
+{
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Prix</th>
+                <th>Devise</th>
+                <th>Vendu</th>
+                <AuthorizeView Roles="Admin">
+                    <th>Action</th>
+                </AuthorizeView>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ordi in ListeOrdinateurs)
+            {
+                <tr>
+                    <td>@ordi.Nom</td>
+                    <td>@ordi.Prix.ToString("N2")</td>
+                    <td>EUR</td>
+                    <td>@(ordi.Vendu ? "Oui" : "Non")</td>
+                    <AuthorizeView Roles="Admin">
+                        <td>
+                            <button class="btn btn-sm btn-outline-secondary" disabled="@IsSaving"
+                                    @onclick="() => ModifierVenduAsync(ordi)">
+                                @(ordi.Vendu ? "Marquer non vendu" : "Marquer vendu")
+                            </button>
+                        </td>
+                    </AuthorizeView>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private static readonly JsonSerializerOptions JsonOpts = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
+
+    private List<Ordinateur>? ListeOrdinateurs;
+    private bool IsLoading = true;
+    private bool IsSaving;
+    private string ErrorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            ListeOrdinateurs = await Http.GetFromJsonAsync<List<Ordinateur>>("api/ordinateurs", JsonOpts);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Erreur : {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+
+        // La liste s'affiche sans attendre la réponse de l'API de change.
+        StateHasChanged();
+        await DeviseSvc.ChargerTauxAsync();
+    }
+
+    private async Task ModifierVenduAsync(Ordinateur ordinateur)
+    {
+        IsSaving = true;
+        ErrorMessage = string.Empty;
+        var ancienStatut = ordinateur.Vendu;
+        ordinateur.Vendu = !ancienStatut;
+
+        try
+        {
+            // La modification passe par la Gateway ; l'API vérifie le rôle Admin.
+            using var reponse = await Http.PutAsJsonAsync($"api/ordinateurs/{ordinateur.Id}", ordinateur, JsonOpts);
+            if (!reponse.IsSuccessStatusCode)
+            {
+                ordinateur.Vendu = ancienStatut;
+                ErrorMessage = "Impossible de modifier le statut vendu.";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            ordinateur.Vendu = ancienStatut;
+            ErrorMessage = "L'API est indisponible.";
+        }
+        catch (TaskCanceledException)
+        {
+            ordinateur.Vendu = ancienStatut;
+            ErrorMessage = "L'API ne répond pas.";
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+}

@@ -1,0 +1,98 @@
+@page "/login"
+@using System.Text.Json
+@inject HttpClient Http
+@inject ISessionStorageService SessionStorage
+@inject NavigationManager Navigation
+@inject JwtAuthenticationStateProvider AuthProvider
+
+<PageTitle>Connexion</PageTitle>
+
+@if (ConnexionVerifiee)
+{
+    <h3>Connexion</h3>
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger">@ErrorMessage</div>
+    }
+
+    <form @onsubmit="ConnecterAsync" @onsubmit:preventDefault="true" style="max-width: 400px;">
+        <div class="mb-3">
+            <label class="form-label">Identifiant :</label>
+            <input type="text" class="form-control" placeholder="user1, user2, user3" @bind="Username" />
+        </div>
+
+        <button type="submit" class="btn btn-primary" disabled="@IsLoading">
+            @(IsLoading ? "Connexion en cours..." : "Se connecter")
+        </button>
+    </form>
+}
+
+@code {
+    private string Username = string.Empty;
+    private string ErrorMessage = string.Empty;
+    private bool IsLoading = false;
+    private bool ConnexionVerifiee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var etat = await AuthProvider.GetAuthenticationStateAsync();
+        if (etat.User.Identity?.IsAuthenticated == true)
+        {
+            Navigation.NavigateTo("/", replace: true);
+            return;
+        }
+
+        ConnexionVerifiee = true;
+    }
+
+    private async Task ConnecterAsync()
+    {
+        if (IsLoading) return;
+        ErrorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(Username))
+        {
+            ErrorMessage = "Veuillez saisir un identifiant.";
+            return;
+        }
+
+        IsLoading = true;
+
+        try
+        {
+            var res = await Http.PostAsJsonAsync("api/authentication/login", new { Login = Username.Trim() });
+
+            if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                ErrorMessage = $"L'utilisateur '{Username.Trim()}' n'existe pas.";
+                return;
+            }
+
+            if (!res.IsSuccessStatusCode)
+            {
+                ErrorMessage = "Erreur lors de la connexion.";
+                return;
+            }
+
+            var data = await res.Content.ReadFromJsonAsync<JsonElement>();
+            var token = data.GetProperty("token").GetString();
+
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                // Sauvegarde du token en session et redirection
+                await SessionStorage.SetItemAsync("jwtToken", token);
+                AuthProvider.NotifyUserAuthentication(token);
+                Navigation.NavigateTo("/");
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Erreur : {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}

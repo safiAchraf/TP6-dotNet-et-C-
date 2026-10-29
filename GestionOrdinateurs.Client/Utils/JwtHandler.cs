@@ -1,0 +1,26 @@
+namespace GestionOrdinateurs.Client.Utils;
+
+using System.Net.Http.Headers;
+using Blazored.SessionStorage;
+
+public class JwtHandler : DelegatingHandler
+{
+    private readonly ISessionStorageService _sessionStorage;
+
+    public JwtHandler(ISessionStorageService sessionStorage)
+    {
+        _sessionStorage = sessionStorage;
+    }
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        // Le client nommé GatewayClient est le seul à utiliser ce handler.
+        var token = await _sessionStorage.GetItemAsync<string>("jwtToken");
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
+
+        return await base.SendAsync(request, cancellationToken);
+    }
+}

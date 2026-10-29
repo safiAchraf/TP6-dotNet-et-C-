@@ -1,0 +1,27 @@
+@page "/"
+
+<PageTitle>Accueil</PageTitle>
+
+<h1>Gestion du parc informatique</h1>
+
+<p>Application de gestion de la flotte d'ordinateurs et du suivi des réparations de l'atelier.</p>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="alert alert-success">
+            Connecté en tant que <strong>@context.User.Identity?.Name</strong> (Rôle : <strong>@context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</strong>).
+        </div>
+        <p>Vous pouvez accéder aux rubriques via le menu :</p>
+        <ul>
+            <li><a href="ordinateurs">Liste des ordinateurs</a></li>
+            <AuthorizeView Roles="Admin" Context="adminCtx">
+                <li><a href="reparations">Historique des réparations</a></li>
+            </AuthorizeView>
+        </ul>
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-info">
+            Veuillez vous <a href="login">connecter</a> pour accéder à l'application.
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
