@@ -9,14 +9,15 @@
 
 @if (ConnexionVerifiee)
 {
-    <h3>Connexion</h3>
+    <h1>Se connecter</h1>
+    <p class="page-intro">Accès au parc informatique de l'atelier.</p>
 
     @if (!string.IsNullOrEmpty(ErrorMessage))
     {
         <div class="alert alert-danger">@ErrorMessage</div>
     }
 
-    <form @onsubmit="ConnecterAsync" @onsubmit:preventDefault="true" style="max-width: 400px;">
+    <form class="login-form" @onsubmit="ConnecterAsync" @onsubmit:preventDefault="true">
         <div class="mb-3">
             <label class="form-label" for="username">Identifiant :</label>
             <input id="username" type="text" class="form-control" autocomplete="username" placeholder="user1, user2, user3" @bind="Username" />

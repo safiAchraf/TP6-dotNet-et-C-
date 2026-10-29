@@ -2,17 +2,16 @@
 
 <PageTitle>Accueil</PageTitle>
 
-<h1>Gestion du parc informatique</h1>
-
-<p>Application de gestion de la flotte d'ordinateurs et du suivi des réparations de l'atelier.</p>
+<h1>Parc informatique</h1>
+<p class="page-intro">Consultation des ordinateurs et suivi des réparations de l'atelier.</p>
 
 <AuthorizeView>
     <Authorized>
-        <div class="alert alert-success">
-            Connecté en tant que <strong>@context.User.Identity?.Name</strong> (Rôle : <strong>@context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</strong>).
-        </div>
-        <p>Vous pouvez accéder aux rubriques via le menu :</p>
-        <ul>
+        <p class="session-note">
+            Session : <strong>@context.User.Identity?.Name</strong> · @context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+        </p>
+        <h2>Accès aux rubriques</h2>
+        <ul class="home-links">
             <li><a href="ordinateurs">Liste des ordinateurs</a></li>
             <AuthorizeView Roles="Admin" Context="adminCtx">
                 <li><a href="reparations">Historique des réparations</a></li>
@@ -20,8 +19,6 @@
         </ul>
     </Authorized>
     <NotAuthorized>
-        <div class="alert alert-info">
-            Veuillez vous <a href="login">connecter</a> pour accéder à l'application.
-        </div>
+        <p class="session-note">Veuillez vous <a href="login">connecter</a> pour accéder aux ordinateurs.</p>
     </NotAuthorized>
 </AuthorizeView>

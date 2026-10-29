@@ -4,7 +4,8 @@
 
 <PageTitle>Réparations</PageTitle>
 
-<h3>Historique des réparations</h3>
+<h1>Réparations</h1>
+<p class="page-intro">Historique des interventions de l'atelier.</p>
 
 @if (!string.IsNullOrEmpty(ErrorMessage))
 {
@@ -17,7 +18,8 @@
 }
 else if (Historique != null && Historique.Count > 0)
 {
-    <table class="table table-bordered table-striped">
+    <div class="table-responsive">
+    <table class="table">
         <thead>
             <tr>
                 <th>ID Ordi</th>
@@ -40,6 +42,7 @@ else if (Historique != null && Historique.Count > 0)
             }
         </tbody>
     </table>
+    </div>
 }
 
 @code {

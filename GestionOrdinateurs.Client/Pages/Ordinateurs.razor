@@ -7,7 +7,7 @@
 
 <PageTitle>Ordinateurs</PageTitle>
 
-<h3>Liste des ordinateurs</h3>
+<h1>Ordinateurs</h1>
 
 @if (DeviseSvc.TauxDollar.HasValue)
 {
@@ -30,7 +30,8 @@
 }
 else if (ListeOrdinateurs != null && ListeOrdinateurs.Count > 0)
 {
-    <table class="table table-striped table-bordered">
+    <div class="table-responsive">
+    <table class="table">
         <thead>
             <tr>
                 <th>Nom</th>
@@ -47,9 +48,9 @@ else if (ListeOrdinateurs != null && ListeOrdinateurs.Count > 0)
             {
                 <tr>
                     <td>@ordi.Nom</td>
-                    <td>@ordi.Prix.ToString("N2")</td>
+                    <td class="price">@ordi.Prix.ToString("N2")</td>
                     <td>EUR</td>
-                    <td>@(ordi.Vendu ? "Oui" : "Non")</td>
+                    <td><span class="sale-status">@(ordi.Vendu ? "Oui" : "Non")</span></td>
                     <AuthorizeView Roles="Admin">
                         <td>
                             <button class="btn btn-sm btn-outline-secondary" disabled="@IsSaving"
@@ -62,6 +63,7 @@ else if (ListeOrdinateurs != null && ListeOrdinateurs.Count > 0)
             }
         </tbody>
     </table>
+    </div>
 }
 
 @code {
